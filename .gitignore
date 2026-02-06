@@ -1,4 +1,5 @@
 scripts/
+apps/**/scripts/
 
 # Node / workspace
 node_modules/

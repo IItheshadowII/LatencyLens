@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && node scripts/copy-public.mjs",
+  "build": "tsc && node --input-type=module -e \"import fs from 'fs/promises'; import path from 'path'; const src=path.resolve('src/public'); const dest=path.resolve('dist/public'); try { await fs.rm(dest,{recursive:true,force:true}); } catch {} await fs.mkdir(dest,{recursive:true}); await fs.cp(src,dest,{recursive:true});\"",
     "start": "node dist/index.js",
     "lint": "eslint . --ext ts"
   },

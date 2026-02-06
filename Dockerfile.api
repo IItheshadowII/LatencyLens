@@ -12,7 +12,6 @@ COPY tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/api/tsconfig.json ./apps/api/tsconfig.json
 COPY apps/api/.env.example ./apps/api/.env.example
-COPY apps/api/scripts ./apps/api/scripts
 COPY apps/api/src ./apps/api/src
 RUN npm install --workspace apps/api
 RUN cd apps/api && npm run build
