@@ -3,16 +3,19 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY apps/api/package.json ./apps/api/package.json
-RUN npm install --omit=dev
+RUN npm install --workspace apps/api --omit=dev
 
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/package.json
-RUN npm install
-COPY apps/api ./apps/api
-RUN npm run build -w apps/api
+COPY apps/api/tsconfig.json ./apps/api/tsconfig.json
+COPY apps/api/.env.example ./apps/api/.env.example
+COPY apps/api/scripts ./apps/api/scripts
+COPY apps/api/src ./apps/api/src
+RUN npm install --workspace apps/api
+RUN cd apps/api && npm run build
 
 FROM node:20-alpine
 WORKDIR /app
