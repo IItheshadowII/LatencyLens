@@ -104,6 +104,37 @@ docker compose build
 docker compose up -d
 ```
 
+## Deploy en EasyPanel (sin ports)
+
+Para compatibilidad con EasyPanel, el `docker-compose.yml` de este repo **no publica puertos** con `ports:`.
+En su lugar, cada servicio declara solo puertos internos mediante `expose:`:
+
+- `api` expone el puerto interno `3001` (`PORT=3001`).
+- `web` expone el puerto interno `80` (servidor web dentro del contenedor).
+
+EasyPanel se encarga de mapear estos puertos internos hacia el exterior a través de la sección **Dominios/Redirecciones**.
+No es necesario (ni recomendable) definir `ports:` en el compose cuando se usa EasyPanel.
+
+### URLs internas entre servicios
+
+Dentro del stack Docker/EasyPanel, los servicios se hablan por hostname de servicio:
+
+- El frontend se construye con `VITE_API_BASE` apuntando a `http://api:3001`.
+- La API permite CORS desde `http://web:80`.
+
+Si necesitás ajustar estos valores para otro puerto interno, modificá:
+
+- En `docker-compose.yml`, variable `PORT` del servicio `api` y el argumento `VITE_API_BASE` del servicio `web`.
+
+### Ejemplo de dominios en EasyPanel
+
+En EasyPanel, configurá algo como:
+
+- Web: `https://web.example.com` → servicio `web`, puerto interno `80`.
+- API: `https://api.example.com` → servicio `api`, puerto interno `3001`.
+
+La configuración pública de SSL y dominios se hace íntegramente en EasyPanel; el compose solo define los servicios y sus puertos internos.
+
 ## Skill Copilot: crear repo en GitHub
 Este repo incluye un skill para crear un repositorio local y remoto en GitHub, pedir autenticación web, hacer commit y push, y verificar el resultado.
 
