@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/dist
+**/build
+**/.env
+**/.env.*
+**/data
+**/*.sqlite
+**/*.sqlite3
+.git
+.vscode

@@ -1,0 +1,26 @@
+scripts/
+
+# Node / workspace
+node_modules/
+apps/web/node_modules/
+apps/api/node_modules/
+
+# Build outputs
+dist/
+apps/web/dist/
+apps/api/dist/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Env and secrets
+.env
+*.env.local
+apps/api/.env
+apps/web/.env
+
+# Logs
+*.log
+
+# SQLite database files (keep schema, ignore runtime DB)
+apps/api/data/*.sqlite*
