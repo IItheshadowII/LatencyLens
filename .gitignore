@@ -25,3 +25,6 @@ apps/web/.env
 
 # SQLite database files (keep schema, ignore runtime DB)
 apps/api/data/*.sqlite*
+
+# Local-only compose overrides
+docker-compose.override.yml
