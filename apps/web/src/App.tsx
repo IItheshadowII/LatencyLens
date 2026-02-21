@@ -150,7 +150,9 @@ const App = () => {
     let timeouts = 0;
 
     for (let i = 0; i < PING_COUNT; i += 1) {
-      const url = `${cloud}/connection-probe/download.ashx?bytes=1&t=${Date.now()}-${i}`;
+        const url = apiBase
+          ? `${apiBase}/api/proxy/download?cloud=${encodeURIComponent(cloud)}&bytes=1&t=${Date.now()}-${i}`
+          : `${cloud}/connection-probe/download.ashx?bytes=1&t=${Date.now()}-${i}`;
       const start = performance.now();
       try {
         const response = await fetchWithTimeout(url, {}, PING_TIMEOUT_MS);
@@ -168,7 +170,9 @@ const App = () => {
   };
 
   const runDownloadTest = async (cloud: string, bytes: number): Promise<ThroughputStats> => {
-    const url = `${cloud}/connection-probe/download.ashx?bytes=${bytes}&t=${Date.now()}`;
+    const url = apiBase
+      ? `${apiBase}/api/proxy/download?cloud=${encodeURIComponent(cloud)}&bytes=${bytes}&t=${Date.now()}`
+      : `${cloud}/connection-probe/download.ashx?bytes=${bytes}&t=${Date.now()}`;
     const start = performance.now();
     const response = await fetchWithTimeout(url, {}, 15000);
     if (!response.ok) throw new Error("Download failed");
@@ -184,8 +188,12 @@ const App = () => {
   const runUploadTest = async (cloud: string, bytes: number): Promise<ThroughputStats> => {
     const buffer = new Uint8Array(bytes);
     const start = performance.now();
+    const uploadTarget = apiBase
+      ? `${apiBase}/api/proxy/upload?cloud=${encodeURIComponent(cloud)}`
+      : `${cloud}/connection-probe/upload.ashx?t=${Date.now()}`;
+
     const response = await fetchWithTimeout(
-      `${cloud}/connection-probe/upload.ashx?t=${Date.now()}`,
+      uploadTarget,
       {
         method: "POST",
         headers: {
@@ -222,11 +230,11 @@ const App = () => {
 
     updateLogs("Verificando endpoint /connection-probe/download.ashx?bytes=1");
     try {
-      const response = await fetchWithTimeout(
-        `${normalized}/connection-probe/download.ashx?bytes=1&t=${Date.now()}`,
-        {},
-        PING_TIMEOUT_MS
-      );
+      const probeCheckUrl = apiBase
+        ? `${apiBase}/api/proxy/download?cloud=${encodeURIComponent(normalized)}&bytes=1&t=${Date.now()}`
+        : `${normalized}/connection-probe/download.ashx?bytes=1&t=${Date.now()}`;
+
+      const response = await fetchWithTimeout(probeCheckUrl, {}, PING_TIMEOUT_MS);
       if (!response.ok) {
         throw new Error("Probe no responde");
       }
@@ -266,9 +274,22 @@ const App = () => {
 
     setProgress(100);
 
-    const ip = apiBase
-      ? await fetch(`${apiBase}/api/ip`).then((res) => res.json()).then((data) => data.ip).catch(() => undefined)
-      : undefined;
+    // Try to obtain the client's public IP from a public service (runs in-browser).
+    // If that fails (no network / blocked), fall back to asking the server for the IP.
+    let ip: string | undefined = undefined;
+    try {
+      const r = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+      if (r.ok) {
+        const j = await r.json();
+        ip = j.ip;
+      }
+    } catch (e) {
+      // ignore and fallback to server-side
+    }
+
+    if (!ip && apiBase) {
+      ip = await fetch(`${apiBase}/api/ip`).then((res) => res.json()).then((data) => data.ip).catch(() => undefined);
+    }
 
     const newResult: TestResult = {
       cloud: normalized,
